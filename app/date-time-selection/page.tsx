@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { toJalaali, toGregorian, jalaaliMonthLength, isLeapJalaaliYear } from 'jalaali-js'
 
 export default function DateTimeSelectionPage() {
   const [selectedDate, setSelectedDate] = useState<string>('')
@@ -13,7 +14,14 @@ export default function DateTimeSelectionPage() {
   const [selectedPlace, setSelectedPlace] = useState<string>('')
   const [selectedRoom, setSelectedRoom] = useState<string>('')
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
+  const [currentMonth, setCurrentMonth] = useState<Date | null>(null)
   const router = useRouter()
+
+  // Convert numbers to Farsi numerals
+  const toFarsiNumber = (num: number): string => {
+    const farsiDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹']
+    return num.toString().replace(/\d/g, (digit) => farsiDigits[parseInt(digit)])
+  }
 
   useEffect(() => {
     // Get the selected place and room from localStorage
@@ -27,34 +35,139 @@ export default function DateTimeSelectionPage() {
     
     setSelectedPlace(place)
     setSelectedRoom(room)
+    
+    // Set current month to current Jalali month
+    const today = new Date()
+    const currentJalali = toJalaali(today.getFullYear(), today.getMonth() + 1, today.getDate())
+    const currentJalaliMonthStart = toGregorian(currentJalali.jy, currentJalali.jm, 1)
+    setCurrentMonth(new Date(currentJalaliMonthStart.gy, currentJalaliMonthStart.gm - 1, currentJalaliMonthStart.gd))
   }, [router])
 
-  // Generate next 14 days for mobile-friendly display
-  const generateDates = () => {
+  // Generate calendar dates for current Jalali month
+  const generateCalendarDates = () => {
     const dates = []
-    const today = new Date()
     
-    for (let i = 0; i < 14; i++) {
-      const date = new Date(today)
-      date.setDate(today.getDate() + i)
+    // If currentMonth is not set yet, return empty array
+    if (!currentMonth) return dates
+    
+    // Get current Jalali date
+    const today = new Date()
+    const currentJalali = toJalaali(today.getFullYear(), today.getMonth() + 1, today.getDate())
+    
+    // Get the Jalali month we're displaying
+    const displayJalali = toJalaali(currentMonth.getFullYear(), currentMonth.getMonth() + 1, currentMonth.getDate())
+    
+    // Get number of days in the Jalali month
+    const daysInMonth = jalaaliMonthLength(displayJalali.jy, displayJalali.jm)
+    
+    // Get first day of Jalali month and calculate starting day of week
+    const firstDayGregorian = toGregorian(displayJalali.jy, displayJalali.jm, 1)
+    const firstDayDate = new Date(firstDayGregorian.gy, firstDayGregorian.gm - 1, firstDayGregorian.gd)
+    const gregorianDayOfWeek = firstDayDate.getDay() // 0 = Sunday, 6 = Saturday
+    
+    // Convert to Persian week format (Saturday = 0, Sunday = 1, ..., Friday = 6)
+    const startingDayOfWeek = (gregorianDayOfWeek + 1) % 7
+    
+    // Add empty cells for days before the first day of month
+    for (let i = 0; i < startingDayOfWeek; i++) {
+      dates.push({ isEmpty: true })
+    }
+    
+    // Add all days of the Jalali month
+    for (let day = 1; day <= daysInMonth; day++) {
+      const jalaliDate = { jy: displayJalali.jy, jm: displayJalali.jm, jd: day }
+      const gregorianDate = toGregorian(jalaliDate.jy, jalaliDate.jm, jalaliDate.jd)
+      const gregorianDateObj = new Date(gregorianDate.gy, gregorianDate.gm - 1, gregorianDate.gd)
+      const isoString = gregorianDateObj.toISOString().split('T')[0]
       
-      const persianDate = date.toLocaleDateString('fa-IR', {
-        month: 'short',
-        day: 'numeric'
-      })
+      // Check if this is today
+      const isToday = jalaliDate.jy === currentJalali.jy && 
+                     jalaliDate.jm === currentJalali.jm && 
+                     jalaliDate.jd === currentJalali.jd
       
-      const isoString = date.toISOString().split('T')[0]
+      // Check if this is a past date (compare Jalali dates directly)
+      const isPastDate = jalaliDate.jy < currentJalali.jy || 
+                        (jalaliDate.jy === currentJalali.jy && jalaliDate.jm < currentJalali.jm) ||
+                        (jalaliDate.jy === currentJalali.jy && jalaliDate.jm === currentJalali.jm && jalaliDate.jd < currentJalali.jd)
+      
+      // Get Persian weekday names
+      const persianWeekdays = ['یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنج‌شنبه', 'جمعه', 'شنبه']
+      const weekdayIndex = gregorianDateObj.getDay() // 0 = Sunday, 6 = Saturday
+      const persianWeekday = persianWeekdays[weekdayIndex]
       
       dates.push({
         date: isoString,
-        persianDate: persianDate,
-        dayOfWeek: date.toLocaleDateString('fa-IR', { weekday: 'short' }),
-        day: date.getDate(),
-        isToday: i === 0
+        day: day,
+        farsiDay: toFarsiNumber(day),
+        dayOfWeek: persianWeekday,
+        isToday: isToday,
+        isPastDate: isPastDate,
+        isEmpty: false
       })
     }
     
     return dates
+  }
+
+  // Navigation functions
+  const goToPreviousMonth = () => {
+    if (!currentMonth) return
+    
+    // Convert current month to Jalali
+    const currentJalali = toJalaali(currentMonth.getFullYear(), currentMonth.getMonth() + 1, currentMonth.getDate())
+    
+    // Go to previous Jalali month
+    let prevJalaliMonth = currentJalali.jm - 1
+    let prevJalaliYear = currentJalali.jy
+    
+    if (prevJalaliMonth < 1) {
+      prevJalaliMonth = 12
+      prevJalaliYear -= 1
+    }
+    
+    // Check if we can go to previous month (don't allow past months)
+    const today = new Date()
+    const todayJalali = toJalaali(today.getFullYear(), today.getMonth() + 1, today.getDate())
+    
+    if (prevJalaliYear > todayJalali.jy || 
+        (prevJalaliYear === todayJalali.jy && prevJalaliMonth >= todayJalali.jm)) {
+      // Convert back to Gregorian
+      const prevJalaliMonthStart = toGregorian(prevJalaliYear, prevJalaliMonth, 1)
+      setCurrentMonth(new Date(prevJalaliMonthStart.gy, prevJalaliMonthStart.gm - 1, prevJalaliMonthStart.gd))
+    }
+  }
+
+  const goToNextMonth = () => {
+    if (!currentMonth) return
+    
+    // Convert current month to Jalali
+    const currentJalali = toJalaali(currentMonth.getFullYear(), currentMonth.getMonth() + 1, currentMonth.getDate())
+    
+    // Go to next Jalali month
+    let nextJalaliMonth = currentJalali.jm + 1
+    let nextJalaliYear = currentJalali.jy
+    
+    if (nextJalaliMonth > 12) {
+      nextJalaliMonth = 1
+      nextJalaliYear += 1
+    }
+    
+    // Convert back to Gregorian
+    const nextJalaliMonthStart = toGregorian(nextJalaliYear, nextJalaliMonth, 1)
+    setCurrentMonth(new Date(nextJalaliMonthStart.gy, nextJalaliMonthStart.gm - 1, nextJalaliMonthStart.gd))
+  }
+
+  // Get Jalali month and year display
+  const getMonthYearDisplay = () => {
+    if (!currentMonth) return 'در حال بارگذاری...'
+    
+    const jalaliDate = toJalaali(currentMonth.getFullYear(), currentMonth.getMonth() + 1, currentMonth.getDate())
+    const jalaliMonths = [
+      'فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور',
+      'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'
+    ]
+    
+    return `${jalaliMonths[jalaliDate.jm - 1]} ${toFarsiNumber(jalaliDate.jy)}`
   }
 
   // Generate time slots (9 AM to 6 PM in 1-hour intervals for mobile)
@@ -62,7 +175,7 @@ export default function DateTimeSelectionPage() {
     const slots = []
     for (let hour = 9; hour <= 17; hour++) {
       const time24 = `${hour.toString().padStart(2, '0')}:00`
-      const persianTime = `${hour}:00`
+      const persianTime = `${toFarsiNumber(hour)}:۰۰`
       
       slots.push({
         value: time24,
@@ -73,12 +186,12 @@ export default function DateTimeSelectionPage() {
   }
 
   const durations = [
-    { value: '1', label: '۱ ساعت' },
-    { value: '2', label: '۲ ساعت' },
-    { value: '3', label: '۳ ساعت' },
-    { value: '4', label: '۴ ساعت' },
-    { value: '6', label: '۶ ساعت' },
-    { value: '8', label: '۸ ساعت' }
+    { value: '1', label: `${toFarsiNumber(1)} ساعت` },
+    { value: '2', label: `${toFarsiNumber(2)} ساعت` },
+    { value: '3', label: `${toFarsiNumber(3)} ساعت` },
+    { value: '4', label: `${toFarsiNumber(4)} ساعت` },
+    { value: '6', label: `${toFarsiNumber(6)} ساعت` },
+    { value: '8', label: `${toFarsiNumber(8)} ساعت` }
   ]
 
   const handleReserveClick = () => {
@@ -133,12 +246,17 @@ export default function DateTimeSelectionPage() {
   const getFormattedDate = () => {
     if (!selectedDate) return ''
     const date = new Date(selectedDate)
-    return date.toLocaleDateString('fa-IR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      weekday: 'long'
-    })
+    const jalaliDate = toJalaali(date.getFullYear(), date.getMonth() + 1, date.getDate())
+    const jalaliMonths = [
+      'فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور',
+      'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'
+    ]
+    const jalaliWeekdays = [
+      'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنج‌شنبه', 'جمعه', 'شنبه'
+    ]
+    
+    const weekday = date.getDay()
+    return `${jalaliWeekdays[weekday]} ${toFarsiNumber(jalaliDate.jd)} ${jalaliMonths[jalaliDate.jm - 1]} ${toFarsiNumber(jalaliDate.jy)}`
   }
 
   const calculateEndTime = () => {
@@ -154,7 +272,6 @@ export default function DateTimeSelectionPage() {
     return `${endHours}:${endMinutes.toString().padStart(2, '0')}`
   }
 
-  const dates = generateDates()
   const timeSlots = generateTimeSlots()
 
   return (
@@ -176,45 +293,79 @@ export default function DateTimeSelectionPage() {
         </div>
       </div>
 
-      <div className="px-4 py-6 space-y-6">
+      <div className="px-4 py-4 pb-24 space-y-4">
         {/* Date Selection */}
         <div>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-800">انتخاب تاریخ</h2>
-            <div className="flex space-x-2 space-x-reverse">
-              <button className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center">
-                <span className="text-gray-600">‹</span>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-base font-semibold text-gray-800">انتخاب تاریخ</h2>
+            <div className="flex items-center space-x-3 space-x-reverse">
+              <button 
+                onClick={goToPreviousMonth}
+                disabled={!currentMonth || (() => {
+                  const today = new Date()
+                  const currentJalali = toJalaali(today.getFullYear(), today.getMonth() + 1, today.getDate())
+                  const displayJalali = toJalaali(currentMonth.getFullYear(), currentMonth.getMonth() + 1, currentMonth.getDate())
+                  return displayJalali.jy === currentJalali.jy && displayJalali.jm === currentJalali.jm
+                })()}
+                className={`w-7 h-7 rounded-full border flex items-center justify-center ${
+                  !currentMonth || (() => {
+                    const today = new Date()
+                    const currentJalali = toJalaali(today.getFullYear(), today.getMonth() + 1, today.getDate())
+                    const displayJalali = toJalaali(currentMonth.getFullYear(), currentMonth.getMonth() + 1, currentMonth.getDate())
+                    return displayJalali.jy === currentJalali.jy && displayJalali.jm === currentJalali.jm
+                  })()
+                    ? 'border-gray-200 text-gray-400 cursor-not-allowed'
+                    : 'border-gray-300 text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                <span className="text-sm">‹</span>
               </button>
-              <button className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center">
-                <span className="text-gray-600">›</span>
+              <span className="text-sm font-medium text-gray-700 min-w-[120px] text-center">
+                {getMonthYearDisplay()}
+              </span>
+              <button 
+                onClick={goToNextMonth}
+                disabled={!currentMonth}
+                className={`w-7 h-7 rounded-full border flex items-center justify-center ${
+                  !currentMonth 
+                    ? 'border-gray-200 text-gray-400 cursor-not-allowed'
+                    : 'border-gray-300 text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                <span className="text-gray-600 text-sm">›</span>
               </button>
             </div>
           </div>
           
-          <div className="grid grid-cols-7 gap-2 mb-3">
+          <div className="grid grid-cols-7 gap-1 mb-2">
             {['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'].map((day) => (
-              <div key={day} className="text-center text-sm text-gray-500 py-2">
+              <div key={day} className="text-center text-xs text-gray-500 py-1">
                 {day}
               </div>
             ))}
           </div>
           
-          <div className="grid grid-cols-7 gap-2">
-            {dates.map((dateObj) => (
+          <div className="grid grid-cols-7 gap-1">
+            {generateCalendarDates().map((dateObj, index) => (
               <button
-                key={dateObj.date}
-                className={`aspect-square rounded-full flex flex-col items-center justify-center text-sm transition-all duration-200 ${
-                  selectedDate === dateObj.date
-                    ? 'bg-primary-500 text-white shadow-lg'
+                key={dateObj.isEmpty ? `empty-${index}` : dateObj.date}
+                className={`aspect-square rounded-lg flex flex-col items-center justify-center text-xs transition-all duration-200 ${
+                  dateObj.isEmpty 
+                    ? 'invisible'
+                    : dateObj.isPastDate
+                    ? 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed'
+                    : selectedDate === dateObj.date
+                    ? 'bg-primary-500 text-white shadow-md'
                     : dateObj.isToday
                     ? 'bg-primary-100 text-primary-600 border border-primary-300'
                     : 'bg-white text-gray-700 border border-gray-200 hover:border-primary-300'
                 }`}
-                onClick={() => setSelectedDate(dateObj.date)}
+                onClick={() => !dateObj.isEmpty && !dateObj.isPastDate && dateObj.date && setSelectedDate(dateObj.date)}
+                disabled={dateObj.isEmpty || dateObj.isPastDate}
               >
-                <span className="font-medium">{dateObj.day}</span>
+                <span className="font-medium">{dateObj.farsiDay}</span>
                 {dateObj.isToday && selectedDate !== dateObj.date && (
-                  <span className="text-xs">امروز</span>
+                  <span className="text-[10px] leading-none">امروز</span>
                 )}
               </button>
             ))}
@@ -223,30 +374,19 @@ export default function DateTimeSelectionPage() {
 
         {/* Time Selection */}
         <div>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-800">انتخاب زمان</h2>
-            <div className="flex space-x-2 space-x-reverse">
-              <button className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center">
-                <span className="text-gray-600">‹</span>
-              </button>
-              <button className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center">
-                <span className="text-gray-600">›</span>
-              </button>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-3">
+          <h2 className="text-base font-semibold text-gray-800 mb-3">انتخاب زمان</h2>
+          <div className="grid grid-cols-3 gap-2">
             {timeSlots.map((slot) => (
               <button
                 key={slot.value}
-                className={`p-4 rounded-xl border-2 transition-all duration-200 ${
+                className={`p-3 rounded-lg border-2 transition-all duration-200 ${
                   selectedTime === slot.value
                     ? 'border-primary-500 bg-primary-500 text-white'
                     : 'border-gray-200 bg-white text-gray-700 hover:border-primary-300'
                 }`}
                 onClick={() => setSelectedTime(slot.value)}
               >
-                <span className="font-medium">{slot.label}</span>
+                <span className="font-medium text-sm">{slot.label}</span>
               </button>
             ))}
           </div>
@@ -254,19 +394,19 @@ export default function DateTimeSelectionPage() {
 
         {/* Duration Selection */}
         <div>
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">مدت زمان</h2>
-          <div className="grid grid-cols-2 gap-3">
+          <h2 className="text-base font-semibold text-gray-800 mb-3">مدت زمان</h2>
+          <div className="grid grid-cols-3 gap-2">
             {durations.map((duration) => (
               <button
                 key={duration.value}
-                className={`p-4 rounded-xl border-2 transition-all duration-200 ${
+                className={`p-3 rounded-lg border-2 transition-all duration-200 ${
                   selectedDuration === duration.value
                     ? 'border-primary-500 bg-primary-500 text-white'
                     : 'border-gray-200 bg-white text-gray-700 hover:border-primary-300'
                 }`}
                 onClick={() => setSelectedDuration(duration.value)}
               >
-                <span className="font-medium">{duration.label}</span>
+                <span className="font-medium text-sm">{duration.label}</span>
               </button>
             ))}
           </div>
@@ -275,18 +415,13 @@ export default function DateTimeSelectionPage() {
 
       {/* Bottom Action Bar */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
-        <div className="flex items-center justify-between">
-          <button className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-            <span className="text-gray-600">💬</span>
-          </button>
-          <Button 
-            onClick={handleReserveClick}
-            className="flex-1 max-w-xs h-12 bg-primary-500 hover:bg-primary-600 text-white font-medium text-base"
-            disabled={!selectedDate || !selectedTime || !selectedDuration}
-          >
-            رزرو اتاق
-          </Button>
-        </div>
+        <Button 
+          onClick={handleReserveClick}
+          className="w-full h-12 bg-primary-500 hover:bg-primary-600 text-white font-medium text-base"
+          disabled={!selectedDate || !selectedTime || !selectedDuration}
+        >
+          رزرو اتاق
+        </Button>
       </div>
 
       {/* Confirmation Dialog */}
@@ -315,11 +450,11 @@ export default function DateTimeSelectionPage() {
                 </div>
                 <div className="flex justify-between">
                   <span>زمان شروع:</span>
-                  <span className="font-medium">{selectedTime}</span>
+                  <span className="font-medium">{selectedTime.replace(/\d/g, (digit) => toFarsiNumber(parseInt(digit)))}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>زمان پایان:</span>
-                  <span className="font-medium">{calculateEndTime()}</span>
+                  <span className="font-medium">{calculateEndTime().replace(/\d/g, (digit) => toFarsiNumber(parseInt(digit)))}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>مدت زمان:</span>

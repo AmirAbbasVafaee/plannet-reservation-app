@@ -83,46 +83,65 @@ export default function RoomSelectionPage() {
             <h2 className="text-xl font-semibold text-gray-800 mb-6 text-center">نوع اتاق مورد نظر خود را انتخاب کنید</h2>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          <div className="space-y-4 mb-8">
             {roomTypes.map((room) => (
               <Card 
                 key={room.id}
-                className={`cursor-pointer transition-all duration-200 hover:shadow-lg border-2 h-full ${
+                className={`cursor-pointer transition-all duration-200 hover:shadow-lg border-2 ${
                   selectedRoom === room.id 
                     ? 'border-primary-500 bg-primary-50 shadow-lg' 
                     : 'border-gray-200 bg-white hover:border-primary-300'
                 }`}
                 onClick={() => setSelectedRoom(room.id)}
               >
-                <CardContent className="p-6 h-full flex flex-col">
-                  <div className="text-center mb-4">
-                    <div className="text-5xl mb-3">{room.icon}</div>
-                    <h3 className="text-xl font-semibold text-gray-800 mb-2">{room.name}</h3>
-                    <p className="text-gray-600 text-sm mb-3">{room.description}</p>
-                    <div className="inline-block bg-primary-100 text-primary-700 px-3 py-1 rounded-full text-xs font-medium">
-                      ظرفیت: {room.capacity}
-                    </div>
-                  </div>
-                  
-                  <div className="flex-1">
-                    <div className="space-y-2">
-                      <h4 className="text-sm font-semibold text-gray-700 mb-2">امکانات:</h4>
-                      {room.features.map((feature, index) => (
-                        <div key={index} className="flex items-center text-xs text-gray-600">
-                          <div className="w-1.5 h-1.5 bg-primary-400 rounded-full mr-2"></div>
-                          {feature}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  {selectedRoom === room.id && (
-                    <div className="mt-4 text-center">
-                      <div className="w-6 h-6 bg-primary-500 rounded-full mx-auto flex items-center justify-center">
-                        <div className="w-2 h-2 bg-white rounded-full"></div>
+                <CardContent className="p-6">
+                  <div className="flex items-center space-x-6 space-x-reverse">
+                    {/* Icon Section */}
+                    <div className="flex-shrink-0">
+                      <div className="w-16 h-16 bg-gray-100 rounded-xl flex items-center justify-center">
+                        <div className="text-3xl">{room.icon}</div>
                       </div>
                     </div>
-                  )}
+                    
+                    {/* Content Section */}
+                    <div className="flex-1">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h3 className="text-xl font-semibold text-gray-800 mb-2">{room.name}</h3>
+                          <p className="text-gray-600 text-sm mb-3">{room.description}</p>
+                          
+                          {/* Capacity Badge */}
+                          <div className="inline-block bg-primary-100 text-primary-700 px-3 py-1 rounded-full text-sm font-medium mb-4">
+                            ظرفیت: {room.capacity}
+                          </div>
+                          
+                          {/* Features */}
+                          <div>
+                            <h4 className="text-sm font-semibold text-gray-700 mb-2">امکانات:</h4>
+                            <div className="flex flex-wrap gap-2">
+                              {room.features.map((feature, index) => (
+                                <div key={index} className="flex items-center text-sm text-gray-600 bg-gray-50 px-2 py-1 rounded-md">
+                                  <div className="w-1.5 h-1.5 bg-primary-400 rounded-full mr-2"></div>
+                                  {feature}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Selection Indicator */}
+                        <div className="flex-shrink-0">
+                          {selectedRoom === room.id ? (
+                            <div className="w-6 h-6 bg-primary-500 rounded-full flex items-center justify-center">
+                              <div className="w-2 h-2 bg-white rounded-full"></div>
+                            </div>
+                          ) : (
+                            <div className="w-6 h-6 border-2 border-gray-300 rounded-full"></div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             ))}
