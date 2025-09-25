@@ -1,0 +1,13 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 5, "column": 0}, "map": {"version":3,"sources":["/turbopack/[project]/app/layout.tsx"],"sourcesContent":["import type { Metadata } from 'next'\nimport './globals.css'\n\nexport const metadata: Metadata = {\n  title: 'سیستم رزرو خدمات پلنت',\n  description: 'سیستم مدیریت رزرو اتاق‌ها و خدمات اداری',\n}\n\nexport default function RootLayout({\n  children,\n}: {\n  children: React.ReactNode\n}) {\n  return (\n    <html lang=\"fa\" dir=\"rtl\">\n      <body className=\"kalameh-text bg-gray-50 min-h-screen\">\n        <main className=\"min-h-screen\">\n          {children}\n        </main>\n      </body>\n    </html>\n  )\n}\n"],"names":[],"mappings":";;;;;;;;AAGO,MAAM,WAAqB;IAChC,OAAO;IACP,aAAa;AACf;AAEe,SAAS,WAAW,EACjC,QAAQ,EAGT;IACC,qBACE,wPAAC;QAAK,MAAK;QAAK,KAAI;kBAClB,cAAA,wPAAC;YAAK,WAAU;sBACd,cAAA,wPAAC;gBAAK,WAAU;0BACb;;;;;;;;;;;;;;;;AAKX"}},
+    {"offset": {"line": 42, "column": 0}, "map": {"version":3,"sources":[],"names":[],"mappings":"A"}},
+    {"offset": {"line": 54, "column": 0}, "map": {"version":3,"sources":["/turbopack/[project]/app/time-selection/page.tsx/proxy.mjs"],"sourcesContent":["import { registerClientReference } from \"react-server-dom-turbopack/server.edge\";\nexport default registerClientReference(\n    function() { throw new Error(\"Attempted to call the default export of [project]/app/time-selection/page.tsx from the server, but it's on the client. It's not possible to invoke a client function from the server, it can only be rendered as a Component or passed to props of a Client Component.\"); },\n    \"[project]/app/time-selection/page.tsx\",\n    \"default\",\n);\n"],"names":[],"mappings":";;;;;;uCACe,CAAA,GAAA,+PAAA,CAAA,0BAAuB,AAAD,EACjC;IAAa,MAAM,IAAI,MAAM;AAA2Q,GACxS,yCACA"}},
+    {"offset": {"line": 63, "column": 0}, "map": {"version":3,"sources":[],"names":[],"mappings":"A"}},
+    {"offset": {"line": 68, "column": 0}, "map": {"version":3,"sources":[],"names":[],"mappings":""}},
+    {"offset": {"line": 73, "column": 0}, "map": {"version":3,"sources":[],"names":[],"mappings":"A"}},
+    {"offset": {"line": 84, "column": 0}, "map": {"version":3,"sources":["/turbopack/[project]/.next-internal/server/app/time-selection/page/actions.js"],"sourcesContent":["__turbopack_export_value__({\n});"],"names":[],"mappings":"AAAA,2BAA2B,CAC3B"}},
+    {"offset": {"line": 85, "column": 0}, "map": {"version":3,"sources":[],"names":[],"mappings":"A"}}]
+}
