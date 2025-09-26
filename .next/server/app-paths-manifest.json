@@ -1,8 +1,0 @@
-{
-  "/date-time-selection/page": "app/date-time-selection/page.js",
-  "/page": "app/page.js",
-  "/place-selection/page": "app/place-selection/page.js",
-  "/reservations/page": "app/reservations/page.js",
-  "/room-selection/page": "app/room-selection/page.js",
-  "/success/page": "app/success/page.js"
-}
