@@ -102,77 +102,65 @@ export default function ReservationsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-4">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8 pt-8">
-          <div className="flex items-center">
-            <div className="w-12 h-12 bg-primary-500 rounded-lg flex items-center justify-center ml-4">
-              <div className="text-white text-lg font-bold">پ</div>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header with User Info */}
+      <div className="bg-white shadow-sm border-b">
+        <div className="px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="w-8 h-8 bg-primary-500 rounded-lg flex items-center justify-center ml-3">
+                <div className="text-white text-sm font-bold">P</div>
+              </div>
+              <div>
+                <h1 className="text-lg font-semibold text-gray-800">مدیریت رزروها</h1>
+                <p className="text-sm text-gray-600">پروفایل کاربر</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-800">سیستم رزرو خدمات پلنت</h1>
-              <p className="text-gray-600">پروفایل کاربر</p>
-            </div>
-          </div>
-          <div className="flex items-center">
-            <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center ml-2">
-              <span className="text-gray-600 text-sm">👤</span>
-            </div>
-            <div className="text-right">
-              <div className="text-sm font-medium text-gray-800">پروفایل</div>
+            <div className="flex items-center">
+              <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center ml-2">
+                <span className="text-gray-600 text-sm">👤</span>
+              </div>
+              <div className="text-right">
+                <div className="text-xs font-medium text-gray-800">مهدی فتحی</div>
+                <div className="text-xs text-gray-500">اعتبار: ۸ ساعت</div>
+              </div>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* User Profile Card */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="lg:col-span-1">
-            <CardContent className="p-6">
-              <div className="text-center mb-4">
-                <div className="w-16 h-16 bg-gray-300 rounded-full mx-auto mb-3 flex items-center justify-center">
-                  <span className="text-2xl">👤</span>
+      {/* Reservations Content */}
+      <div className="px-4 py-4 pb-24">
+        <div className="max-w-7xl mx-auto">
+          {/* User Profile Card */}
+          <Card className="mb-6">
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-4 space-x-reverse">
+                <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center">
+                  <span className="text-xl">👤</span>
                 </div>
-                <h3 className="font-semibold text-gray-800">مهدی فتحی</h3>
-                <p className="text-sm text-gray-600">اعتبار: ۸ ساعت</p>
-              </div>
-              <div className="space-y-3 text-sm">
+                <div className="flex-1">
+                  <h3 className="font-semibold text-gray-800">مهدی فتحی</h3>
+                  <p className="text-sm text-gray-600">اعتبار: ۸ ساعت</p>
+                </div>
                 <Button 
-                  className="w-full bg-primary-100 text-primary-700 hover:bg-primary-200 border-0"
+                  className="bg-primary-100 text-primary-700 hover:bg-primary-200 border-0 text-xs"
                   variant="outline"
                 >
                   + خرید بسته
                 </Button>
-                <div className="space-y-2 text-xs text-gray-600">
-                  <div className="p-2 bg-gray-50 rounded flex items-center justify-between">
-                    <span>سفارش های من</span>
-                    <span>📋</span>
-                  </div>
-                  <div className="p-2 bg-gray-50 rounded flex items-center justify-between">
-                    <span>پرداخت های من</span>
-                    <span>💳</span>
-                  </div>
-                  <div className="p-2 bg-gray-50 rounded flex items-center justify-between">
-                    <span>رزرو</span>
-                    <span>📅</span>
-                  </div>
-                  <div className="p-2 bg-gray-50 rounded flex items-center justify-between">
-                    <span>خروج</span>
-                    <span>🚪</span>
-                  </div>
-                </div>
               </div>
             </CardContent>
           </Card>
 
           {/* Reservations Table */}
-          <Card className="lg:col-span-3">
+          <Card>
             <CardHeader className="pb-4">
               <div className="flex justify-between items-center">
-                <CardTitle className="text-xl">سفارش های من:</CardTitle>
+                <CardTitle className="text-lg">سفارش های من</CardTitle>
                 <Button 
                   onClick={handleNewReservation}
-                  className="bg-primary-500 hover:bg-primary-600 text-white"
+                  className="bg-primary-500 hover:bg-primary-600 text-white text-sm"
                 >
                   رزرو جدید
                 </Button>
@@ -192,65 +180,66 @@ export default function ReservationsPage() {
                   </Button>
                 </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b border-gray-200">
-                        <th className="text-right py-3 px-2 text-sm font-medium text-gray-700">عملیات</th>
-                        <th className="text-right py-3 px-2 text-sm font-medium text-gray-700">تاریخ رزرو شده</th>
-                        <th className="text-right py-3 px-2 text-sm font-medium text-gray-700">بخش رزرو شده</th>
-                        <th className="text-right py-3 px-2 text-sm font-medium text-gray-700">زمان ثبت سفارش</th>
-                        <th className="text-right py-3 px-2 text-sm font-medium text-gray-700">شماره رزرو</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {reservations.map((reservation, index) => (
-                        <tr key={reservation.id} className="border-b border-gray-100">
-                          <td className="py-4 px-2">
-                            <div className="flex gap-2">
-                              <Button 
-                                size="sm"
-                                variant="outline"
-                                className="text-xs h-8 px-3 border-primary-300 text-primary-600 hover:bg-primary-50"
-                              >
-                                ویرایش
-                              </Button>
+                <div className="space-y-3">
+                  {reservations.map((reservation, index) => (
+                    <Card key={reservation.id} className="border border-gray-200">
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-3 space-x-reverse mb-2">
+                              <h4 className="font-medium text-gray-800">{getRoomName(reservation.room)}</h4>
                               {getStatusBadge(reservation.status)}
                             </div>
-                          </td>
-                          <td className="py-4 px-2">
-                            <div className="text-sm">
-                              <div className="font-medium">{getFormattedDate(reservation.date)}</div>
-                              <div className="text-gray-600 text-xs">
-                                {reservation.time} - {getDurationLabel(reservation.duration)}
+                            <div className="grid grid-cols-2 gap-4 text-sm">
+                              <div>
+                                <span className="text-gray-600 text-xs">تاریخ:</span>
+                                <div className="font-medium">{getFormattedDate(reservation.date)}</div>
+                                <div className="text-gray-600 text-xs">
+                                  {reservation.time} - {getDurationLabel(reservation.duration)}
+                                </div>
+                              </div>
+                              <div>
+                                <span className="text-gray-600 text-xs">مکان:</span>
+                                <div className="font-medium">{getPlaceName(reservation.place)}</div>
+                                <div className="text-gray-600 text-xs">
+                                  {getFormattedDate(reservation.createdAt)}
+                                </div>
                               </div>
                             </div>
-                          </td>
-                          <td className="py-4 px-2">
-                            <div className="text-sm">
-                              <div className="font-medium">{getRoomName(reservation.room)}</div>
-                              <div className="text-gray-600 text-xs">{getPlaceName(reservation.place)}</div>
+                            <div className="mt-2">
+                              <span className="text-xs text-primary-600 font-medium">
+                                {reservation.id}
+                              </span>
                             </div>
-                          </td>
-                          <td className="py-4 px-2">
-                            <div className="text-sm text-gray-600">
-                              {getFormattedDate(reservation.createdAt)}
-                            </div>
-                          </td>
-                          <td className="py-4 px-2">
-                            <div className="text-sm font-medium text-primary-600">
-                              {reservation.id}
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                          </div>
+                          <div className="flex-shrink-0">
+                            <Button 
+                              size="sm"
+                              variant="outline"
+                              className="text-xs h-8 px-3 border-primary-300 text-primary-600 hover:bg-primary-50"
+                            >
+                              ویرایش
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
               )}
             </CardContent>
           </Card>
         </div>
+      </div>
+
+      {/* Pinned New Reservation Button */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
+        <Button 
+          onClick={handleNewReservation}
+          className="w-full h-12 bg-primary-500 hover:bg-primary-600 text-white font-medium text-base"
+        >
+          رزرو جدید
+        </Button>
       </div>
     </div>
   )

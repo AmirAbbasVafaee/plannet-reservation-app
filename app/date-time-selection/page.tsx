@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { toJalaali, toGregorian, jalaaliMonthLength, isLeapJalaaliYear } from 'jalaali-js'
 
 export default function DateTimeSelectionPage() {
@@ -13,7 +12,10 @@ export default function DateTimeSelectionPage() {
   const [selectedDuration, setSelectedDuration] = useState<string>('')
   const [selectedPlace, setSelectedPlace] = useState<string>('')
   const [selectedRoom, setSelectedRoom] = useState<string>('')
+  const [selectedDateFormatted, setSelectedDateFormatted] = useState<string>('')
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
+  const [isClosing, setIsClosing] = useState(false)
+  const [isOpening, setIsOpening] = useState(false)
   const [currentMonth, setCurrentMonth] = useState<Date | null>(null)
   const router = useRouter()
 
@@ -45,7 +47,15 @@ export default function DateTimeSelectionPage() {
 
   // Generate calendar dates for current Jalali month
   const generateCalendarDates = () => {
-    const dates = []
+    const dates: Array<{
+      date?: string;
+      day?: number;
+      farsiDay?: string;
+      dayOfWeek?: string;
+      isToday?: boolean;
+      isPastDate?: boolean;
+      isEmpty: boolean;
+    }> = []
     
     // If currentMonth is not set yet, return empty array
     if (!currentMonth) return dates
@@ -200,6 +210,20 @@ export default function DateTimeSelectionPage() {
       return
     }
     setShowConfirmDialog(true)
+    setIsClosing(false)
+    setIsOpening(true)
+    // Reset opening state after animation
+    setTimeout(() => {
+      setIsOpening(false)
+    }, 300)
+  }
+
+  const handleCloseModal = () => {
+    setIsClosing(true)
+    setTimeout(() => {
+      setShowConfirmDialog(false)
+      setIsClosing(false)
+    }, 300) // Match the animation duration
   }
 
   const handleConfirmReservation = () => {
@@ -243,21 +267,6 @@ export default function DateTimeSelectionPage() {
     return roomNames[selectedRoom as keyof typeof roomNames] || selectedRoom
   }
 
-  const getFormattedDate = () => {
-    if (!selectedDate) return ''
-    const date = new Date(selectedDate)
-    const jalaliDate = toJalaali(date.getFullYear(), date.getMonth() + 1, date.getDate())
-    const jalaliMonths = [
-      'فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور',
-      'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'
-    ]
-    const jalaliWeekdays = [
-      'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنج‌شنبه', 'جمعه', 'شنبه'
-    ]
-    
-    const weekday = date.getDay()
-    return `${jalaliWeekdays[weekday]} ${toFarsiNumber(jalaliDate.jd)} ${jalaliMonths[jalaliDate.jm - 1]} ${toFarsiNumber(jalaliDate.jy)}`
-  }
 
   const calculateEndTime = () => {
     if (!selectedTime || !selectedDuration) return ''
@@ -285,9 +294,12 @@ export default function DateTimeSelectionPage() {
                 <div className="text-white text-sm font-bold">P</div>
               </div>
               <div>
-                <h1 className="text-lg font-semibold text-gray-800">رزرو اتاق</h1>
-                <p className="text-sm text-gray-600">{getPlaceName()} - {getRoomName()}</p>
+                <h1 className="text-lg font-semibold text-gray-800">انتخاب تاریخ و زمان</h1>
+                <p className="text-sm text-gray-600">{getPlaceName()} - {getRoomName()} - مرحله ۳ از ۴</p>
               </div>
+            </div>
+            <div className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+              مرحله ۳
             </div>
           </div>
         </div>
@@ -360,7 +372,20 @@ export default function DateTimeSelectionPage() {
                     ? 'bg-primary-100 text-primary-600 border border-primary-300'
                     : 'bg-white text-gray-700 border border-gray-200 hover:border-primary-300'
                 }`}
-                onClick={() => !dateObj.isEmpty && !dateObj.isPastDate && dateObj.date && setSelectedDate(dateObj.date)}
+                onClick={() => {
+                  if (!dateObj.isEmpty && !dateObj.isPastDate && dateObj.date) {
+                    setSelectedDate(dateObj.date)
+                    // Use the exact same data that the calendar already calculated
+                    const jalaliMonths = [
+                      'فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور',
+                      'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'
+                    ]
+                    // Get current Jalali year and month from the display
+                    const displayJalali = toJalaali(currentMonth!.getFullYear(), currentMonth!.getMonth() + 1, currentMonth!.getDate())
+                    const formattedDate = `${dateObj.dayOfWeek} ${dateObj.farsiDay} ${jalaliMonths[displayJalali.jm - 1]} ${toFarsiNumber(displayJalali.jy)}`
+                    setSelectedDateFormatted(formattedDate)
+                  }
+                }}
                 disabled={dateObj.isEmpty || dateObj.isPastDate}
               >
                 <span className="font-medium">{dateObj.farsiDay}</span>
@@ -424,63 +449,85 @@ export default function DateTimeSelectionPage() {
         </Button>
       </div>
 
-      {/* Confirmation Dialog */}
-      <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-center">تایید رزرو</DialogTitle>
-          </DialogHeader>
+      {/* Bottom Sliding Modal */}
+      {showConfirmDialog && (
+        <>
+          {/* Backdrop with fade animation */}
+          <div 
+            className={`fixed inset-0 bg-black/50 z-40 transition-opacity duration-300 ${
+              isClosing ? 'opacity-0' : isOpening ? 'opacity-0' : 'opacity-100'
+            }`}
+            onClick={handleCloseModal}
+          />
           
-          <div className="space-y-4">
-            {/* Reservation Summary Card */}
-            <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
-              <h3 className="font-medium text-primary-800 mb-3 text-center">خلاصه رزرو:</h3>
-              <div className="space-y-2 text-sm text-primary-700">
-                <div className="flex justify-between">
-                  <span>مکان:</span>
-                  <span className="font-medium">{getPlaceName()}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>نوع اتاق:</span>
-                  <span className="font-medium">{getRoomName()}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>تاریخ:</span>
-                  <span className="font-medium">{getFormattedDate()}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>زمان شروع:</span>
-                  <span className="font-medium">{selectedTime.replace(/\d/g, (digit) => toFarsiNumber(parseInt(digit)))}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>زمان پایان:</span>
-                  <span className="font-medium">{calculateEndTime().replace(/\d/g, (digit) => toFarsiNumber(parseInt(digit)))}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>مدت زمان:</span>
-                  <span className="font-medium">{durations.find(d => d.value === selectedDuration)?.label}</span>
+          {/* Bottom Modal with slide-up animation */}
+          <div className={`fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl z-50 transition-transform duration-300 ease-out ${
+            isClosing ? 'translate-y-full' : isOpening ? 'translate-y-full' : 'translate-y-0'
+          }`}>
+            {/* Modal Handle */}
+            <div className="flex justify-center pt-3 pb-2">
+              <div className="w-12 h-1 bg-gray-300 rounded-full"></div>
+            </div>
+            
+            {/* Modal Content */}
+            <div className="px-6 pb-6">
+              {/* Header */}
+              <div className="text-center mb-6">
+                <h2 className="text-lg font-semibold text-gray-800">تایید رزرو</h2>
+                <p className="text-sm text-gray-600 mt-1">لطفاً اطلاعات رزرو را بررسی کنید</p>
+              </div>
+              
+              {/* Reservation Summary Card */}
+              <div className="bg-primary-50 border border-primary-200 rounded-xl p-4 mb-6">
+                <h3 className="font-medium text-primary-800 mb-4 text-center">خلاصه رزرو:</h3>
+                <div className="space-y-3 text-sm text-primary-700">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">مکان:</span>
+                    <span className="font-medium text-gray-800">{getPlaceName()}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">نوع اتاق:</span>
+                    <span className="font-medium text-gray-800">{getRoomName()}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">تاریخ:</span>
+                    <span className="font-medium text-gray-800">{selectedDateFormatted}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">زمان شروع:</span>
+                    <span className="font-medium text-gray-800">{selectedTime.replace(/\d/g, (digit) => toFarsiNumber(parseInt(digit)))}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">زمان پایان:</span>
+                    <span className="font-medium text-gray-800">{calculateEndTime().replace(/\d/g, (digit) => toFarsiNumber(parseInt(digit)))}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">مدت زمان:</span>
+                    <span className="font-medium text-gray-800">{durations.find(d => d.value === selectedDuration)?.label}</span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="flex space-x-3 space-x-reverse">
-              <Button 
-                variant="outline" 
-                className="flex-1"
-                onClick={() => setShowConfirmDialog(false)}
-              >
-                ویرایش
-              </Button>
-              <Button 
-                className="flex-1 bg-primary-500 hover:bg-primary-600"
-                onClick={handleConfirmReservation}
-              >
-                تایید نهایی
-              </Button>
+              {/* Action Buttons */}
+              <div className="flex space-x-3 space-x-reverse">
+                <Button 
+                  variant="outline" 
+                  className="flex-1 h-12 border-primary-300 text-primary-600 hover:bg-primary-50"
+                  onClick={handleCloseModal}
+                >
+                  ویرایش
+                </Button>
+                <Button 
+                  className="flex-1 h-12 bg-primary-500 hover:bg-primary-600 text-white font-medium"
+                  onClick={handleConfirmReservation}
+                >
+                  تایید نهایی
+                </Button>
+              </div>
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
+        </>
+      )}
     </div>
   )
 }

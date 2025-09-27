@@ -38,26 +38,36 @@ export default function PlaceSelectionPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-4">
-      {/* Header */}
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-8 pt-8">
-          <div className="w-16 h-16 mx-auto bg-primary-500 rounded-xl flex items-center justify-center mb-4">
-            <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-              <div className="text-primary-500 text-xl font-bold">P</div>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header with Step Indicator */}
+      <div className="bg-white shadow-sm border-b">
+        <div className="px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="w-8 h-8 bg-primary-500 rounded-lg flex items-center justify-center ml-3">
+                <div className="text-white text-sm font-bold">P</div>
+              </div>
+              <div>
+                <h1 className="text-lg font-semibold text-gray-800">انتخاب مکان</h1>
+                <p className="text-sm text-gray-600">مرحله ۱ از ۴</p>
+              </div>
+            </div>
+            <div className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+              مرحله ۱
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">سیستم رزرو خدمات پلنت</h1>
-          <p className="text-gray-600 text-lg">لطفا نوع سرویس خود را انتخاب کنید</p>
         </div>
+      </div>
 
-        {/* Place Selection */}
+      {/* Place Selection Content */}
+      <div className="px-4 py-4 pb-24">
         <div className="max-w-2xl mx-auto">
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold text-gray-800 mb-6 text-center">مکان مورد نظر خود را انتخاب کنید</h2>
+          <div className="mb-6">
+            <h2 className="text-base font-semibold text-gray-800 mb-2">مکان مورد نظر خود را انتخاب کنید</h2>
+            <p className="text-sm text-gray-600">یکی از دفاتر پلنت را انتخاب کنید</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="space-y-3">
             {places.map((place) => (
               <Card 
                 key={place.id}
@@ -68,35 +78,53 @@ export default function PlaceSelectionPage() {
                 }`}
                 onClick={() => setSelectedPlace(place.id)}
               >
-                <CardContent className="p-6 text-center">
-                  <div className="text-4xl mb-4">{place.icon}</div>
-                  <h3 className="text-xl font-semibold text-gray-800 mb-2">{place.name}</h3>
-                  <p className="text-gray-600 mb-2">{place.description}</p>
-                  <p className="text-sm text-gray-500">{place.address}</p>
-                  
-                  {selectedPlace === place.id && (
-                    <div className="mt-4">
-                      <div className="w-6 h-6 bg-primary-500 rounded-full mx-auto flex items-center justify-center">
-                        <div className="w-2 h-2 bg-white rounded-full"></div>
+                <CardContent className="p-4">
+                  <div className="flex items-center space-x-4 space-x-reverse">
+                    {/* Icon Section */}
+                    <div className="flex-shrink-0">
+                      <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                        <div className="text-2xl">{place.icon}</div>
                       </div>
                     </div>
-                  )}
+                    
+                    {/* Content Section */}
+                    <div className="flex-1">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h3 className="text-lg font-semibold text-gray-800 mb-1">{place.name}</h3>
+                          <p className="text-gray-600 text-sm mb-1">{place.description}</p>
+                          <p className="text-xs text-gray-500">{place.address}</p>
+                        </div>
+                        
+                        {/* Selection Indicator */}
+                        <div className="flex-shrink-0">
+                          {selectedPlace === place.id ? (
+                            <div className="w-6 h-6 bg-primary-500 rounded-full flex items-center justify-center">
+                              <div className="w-2 h-2 bg-white rounded-full"></div>
+                            </div>
+                          ) : (
+                            <div className="w-6 h-6 border-2 border-gray-300 rounded-full"></div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             ))}
           </div>
-
-          {/* Continue Button */}
-          <div className="text-center">
-            <Button 
-              onClick={handleContinue}
-              className="w-full max-w-md h-12 bg-primary-500 hover:bg-primary-600 text-white font-medium text-base"
-              disabled={!selectedPlace}
-            >
-              ادامه
-            </Button>
-          </div>
         </div>
+      </div>
+
+      {/* Pinned Continue Button */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
+        <Button 
+          onClick={handleContinue}
+          className="w-full h-12 bg-primary-500 hover:bg-primary-600 text-white font-medium text-base"
+          disabled={!selectedPlace}
+        >
+          ادامه
+        </Button>
       </div>
     </div>
   )

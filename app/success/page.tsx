@@ -170,79 +170,101 @@ export default function SuccessPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        {/* Success Animation */}
-        <div className="text-center mb-8">
-          <div className="w-24 h-24 mx-auto bg-green-100 rounded-full flex items-center justify-center mb-4 animate-pulse">
-            <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center">
-              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-              </svg>
+    <div className="min-h-screen bg-gray-50">
+      {/* Success Header */}
+      <div className="bg-white shadow-sm border-b">
+        <div className="px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center ml-3">
+                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div>
+                <h1 className="text-lg font-semibold text-gray-800">رزرو موفقیت‌آمیز</h1>
+                <p className="text-sm text-gray-600">رزرو شما با موفقیت ثبت شد</p>
+              </div>
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">رزرو موفقیت‌آمیز بود!</h1>
-          <p className="text-gray-600">رزرو شما با موفقیت ثبت شد</p>
         </div>
+      </div>
 
-        {/* Reservation Details */}
-        <Card className="border-0 shadow-xl bg-white/90 backdrop-blur-sm mb-6">
-          <CardContent className="p-6">
-            <div className="text-center mb-4">
-              <h2 className="text-lg font-semibold text-gray-800 mb-1">جزئیات رزرو</h2>
-              <div className="text-sm text-primary-600 font-medium bg-primary-50 inline-block px-3 py-1 rounded-full">
-                شماره رزرو: {reservationData.id}
+      {/* Success Content */}
+      <div className="px-4 py-6">
+        <div className="max-w-md mx-auto">
+          {/* Success Animation */}
+          <div className="text-center mb-8">
+            <div className="w-20 h-20 mx-auto bg-green-100 rounded-full flex items-center justify-center mb-4 animate-pulse">
+              <div className="w-14 h-14 bg-green-500 rounded-full flex items-center justify-center">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                </svg>
               </div>
             </div>
+            <h2 className="text-xl font-bold text-gray-800 mb-2">تبریک!</h2>
+            <p className="text-gray-600 text-sm">رزرو شما با موفقیت ثبت شد</p>
+          </div>
 
-            <div className="space-y-3 text-sm">
-              <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                <span className="text-gray-600">مکان:</span>
-                <span className="font-medium text-gray-800">{getPlaceName()}</span>
+          {/* Reservation Details */}
+          <Card className="border-0 shadow-lg mb-6">
+            <CardContent className="p-4">
+              <div className="text-center mb-4">
+                <h3 className="text-base font-semibold text-gray-800 mb-2">جزئیات رزرو</h3>
+                <div className="text-xs text-primary-600 font-medium bg-primary-50 inline-block px-2 py-1 rounded-full">
+                  شماره رزرو: {reservationData.id}
+                </div>
               </div>
-              
-              <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                <span className="text-gray-600">نوع اتاق:</span>
-                <span className="font-medium text-gray-800">{getRoomName()}</span>
-              </div>
-              
-              <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                <span className="text-gray-600">تاریخ:</span>
-                <span className="font-medium text-gray-800">{getFormattedDate()}</span>
-              </div>
-              
-              <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                <span className="text-gray-600">زمان:</span>
-                <span className="font-medium text-gray-800">
-                  {reservationData.time} - {reservationData.endTime}
-                </span>
-              </div>
-              
-              <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                <span className="text-gray-600">مدت زمان:</span>
-                <span className="font-medium text-gray-800">{getDurationLabel()}</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
-        {/* Action Buttons */}
-        <div className="space-y-3">
-          <Button 
-            onClick={handleViewReservations}
-            className="w-full h-12 bg-primary-500 hover:bg-primary-600 text-white font-medium"
-          >
-            مشاهده تمام رزروها
-          </Button>
-          
-          <Button 
-            onClick={handleNewReservation}
-            variant="outline"
-            className="w-full h-12 border-primary-300 text-primary-600 hover:bg-primary-50"
-          >
-            رزرو جدید
-          </Button>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                  <span className="text-gray-600 text-xs">مکان:</span>
+                  <span className="font-medium text-gray-800 text-xs">{getPlaceName()}</span>
+                </div>
+                
+                <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                  <span className="text-gray-600 text-xs">نوع اتاق:</span>
+                  <span className="font-medium text-gray-800 text-xs">{getRoomName()}</span>
+                </div>
+                
+                <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                  <span className="text-gray-600 text-xs">تاریخ:</span>
+                  <span className="font-medium text-gray-800 text-xs">{getFormattedDate()}</span>
+                </div>
+                
+                <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                  <span className="text-gray-600 text-xs">زمان:</span>
+                  <span className="font-medium text-gray-800 text-xs">
+                    {reservationData.time} - {reservationData.endTime}
+                  </span>
+                </div>
+                
+                <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                  <span className="text-gray-600 text-xs">مدت زمان:</span>
+                  <span className="font-medium text-gray-800 text-xs">{getDurationLabel()}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
+      </div>
+
+      {/* Pinned Action Buttons */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 space-y-3">
+        <Button 
+          onClick={handleViewReservations}
+          className="w-full h-12 bg-primary-500 hover:bg-primary-600 text-white font-medium"
+        >
+          مشاهده تمام رزروها
+        </Button>
+        
+        <Button 
+          onClick={handleNewReservation}
+          variant="outline"
+          className="w-full h-12 border-primary-300 text-primary-600 hover:bg-primary-50"
+        >
+          رزرو جدید
+        </Button>
       </div>
     </div>
   )
